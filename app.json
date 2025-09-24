@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "chat-app",
+    "name": "chat app",
     "slug": "chat-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "chatapp",
+    "scheme": "chat-app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
