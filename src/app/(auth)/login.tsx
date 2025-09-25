@@ -37,7 +37,7 @@ export default function Login() {
           result.error.message || 'Invalid credentials',
         )
       } else {
-        router.replace('/(tabs)/chat')
+        router.replace('/(tabs)/chats')
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred')

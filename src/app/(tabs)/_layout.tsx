@@ -2,6 +2,27 @@ import React from 'react'
 import { Tabs } from 'expo-router'
 import { Text, View } from 'react-native'
 
+const TabIcon = ({
+  focused,
+  children,
+  label,
+}: {
+  focused: boolean
+  children: string
+  label: string
+}) => (
+  <View className="items-center justify-center">
+    <Text className={`text-2xl ${focused ? 'opacity-100' : 'opacity-50'}`}>
+      {children}
+    </Text>
+    <Text
+      className={`mt-1 text-xs ${focused ? 'text-primary-500' : 'text-secondary-400'}`}
+    >
+      {label}
+    </Text>
+  </View>
+)
+
 export default function TabLayout() {
   return (
     <Tabs
@@ -19,7 +40,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="chat"
+        name="chats"
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} label="Chats">
@@ -39,28 +60,5 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-  )
-}
-
-function TabIcon({
-  focused,
-  children,
-  label,
-}: {
-  focused: boolean
-  children: string
-  label: string
-}) {
-  return (
-    <View className="items-center justify-center">
-      <Text className={`text-2xl ${focused ? 'opacity-100' : 'opacity-50'}`}>
-        {children}
-      </Text>
-      <Text
-        className={`mt-1 text-xs ${focused ? 'text-primary-500' : 'text-secondary-400'}`}
-      >
-        {label}
-      </Text>
-    </View>
   )
 }
