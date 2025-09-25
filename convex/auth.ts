@@ -16,10 +16,7 @@ export const createAuth = (ctx: GenericCtx<DataModel>) => {
       enabled: true,
       requireEmailVerification: false,
     },
-    plugins: [
-      expo(),
-      convex(),
-    ],
+    plugins: [expo(), convex()],
   })
 }
 
