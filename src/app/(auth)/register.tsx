@@ -10,7 +10,7 @@ import {
   ScrollView,
   Alert,
 } from 'react-native'
-import { signUp } from '@/lib/auth.client'
+import { signUp } from '@/lib/auth-client'
 import { FormField } from '@/components/ui/form-field'
 
 export default function Register() {
@@ -51,6 +51,7 @@ export default function Register() {
       })
 
       if (result.error) {
+        console.log({ error: result.error })
         Alert.alert(
           'Registration Failed',
           result.error.message || 'Could not create account',

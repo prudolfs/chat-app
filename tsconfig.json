@@ -15,21 +15,17 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "checkJs": false,
-    "types": ["nativewind"],
+    "types": ["nativewind", "node"],
     "module": "es2022",
     "moduleResolution": "Bundler",
     "noEmit": true,
     "jsx": "react-native",
     "moduleSuffixes": [".ios", ".android", ".native", ""],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "~/*": ["./convex/*"]
     }
   },
-  "include": [
-    "src",
-    ".expo/types/**/*.ts",
-    "expo-env.d.ts",
-    "nativewind-env.d.ts"
-  ],
+  "include": ["src", "nativewind-env.d.ts"],
   "exclude": ["node_modules", "build", "dist", ".next", ".expo"]
 }

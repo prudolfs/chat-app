@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { router } from 'expo-router'
-import { signIn } from '@/lib/auth.client'
+import { signIn } from '@/lib/auth-client'
 import {
   Platform,
   View,

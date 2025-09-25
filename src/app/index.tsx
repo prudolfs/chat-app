@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
 import { View, Text } from 'react-native'
 import { router } from 'expo-router'
-import { useSession } from '@/lib/auth.client'
+import { useSession } from '@/lib/auth-client'
 
 export default function Index() {
   const { data: session, isPending } = useSession()

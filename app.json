@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "chat app",
+    "name": "ChatApp",
     "slug": "chat-app",
+    "scheme": "chatapp",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "chat-app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
@@ -23,35 +23,7 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "bundler": "metro",
-      "output": "server"
-    },
-    "plugins": [
-      [
-        "expo-router",
-        {
-          "origin": "http://localhost:8081"
-        }
-      ],
-      "expo-secure-store",
-      "expo-font",
-      "expo-web-browser",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 200,
-          "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
-          "dark": {
-            "backgroundColor": "#000000"
-          }
-        }
-      ]
-    ],
-    "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "favicon": "./assets/favicon.png"
     }
   }
 }
