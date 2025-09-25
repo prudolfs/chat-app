@@ -1,50 +1,186 @@
-# Welcome to your Expo app 👋
+![Chat App](preview.gif)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+# ChatApp 💬
 
-## Get started
+> **Work in Progress** – A modern real-time chat application built with React Native, Expo, Convex, and Better Auth.
 
-1. Install dependencies
+## 🚀 Live Demo
 
-   ```bash
-   npm install
-   ```
+Scan the QR code with Expo Go to try the app:
 
-2. Start the app
+_QR code will be available once deployed to Expo_
 
-   ```bash
-   npx expo start
-   ```
+## 📱 Current Features
 
-In the output, you'll find options to open the app in a
+- ✅ **Real-time Chat Interface** – Send and receive messages with instant updates  
+- ✅ **Message Bubbles** – WhatsApp-inspired design with sender distinction  
+- ✅ **Responsive Design** – Works beautifully on iOS and Android  
+- ✅ **Modern UI** – Clean, professional interface with trustable blue theme  
+- ✅ **Timestamps** – Message timing information  
+- ✅ **Smooth Animations** – Native-feeling interactions  
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🛠️ Tech Stack
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Frontend
+- **React Native** – Cross-platform mobile development  
+- **Expo** – Development platform, builds & deployment  
+- **Expo Router** – File-based navigation system  
+- **NativeWind** – Tailwind CSS for React Native  
+- **TypeScript** – Type safety throughout  
 
-## Get a fresh project
+### Backend
+- **Convex** – Real-time database and serverless functions  
+- **Better Auth** – Authentication and session management  
 
-When you're ready, run:
+### Architecture
+- **Single Repo** – Simple Expo + Convex project  
+- **Shared Types** – Type safety across client & server  
+- **Clean Separation** – UI (Expo) / Logic (Convex) / Auth (Better Auth)  
 
-```bash
-npm run reset-project
-```
+## 🏗️ Project Structure
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+\`\`\`
+chat-app/
+├── app/              # Expo Router app
+├── convex/           # Convex backend functions
+├── assets/           # Images, fonts, and other static assets
+├── package.json
+└── README.md
+\`\`\`
 
-## Learn more
+## 📋 Roadmap
 
-To learn more about developing your project with Expo, look at the following resources:
+### Phase 1: Core Chat ✅
+- [x] Basic chat interface  
+- [x] Message sending/receiving  
+- [x] UI/UX foundation  
+- [x] NativeWind styling setup  
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+### Phase 2: Authentication 🚧
+- [x] User registration/login with Better Auth  
+- [x] User profiles  
+- [x] Session persistence  
 
-## Join the community
+### Phase 3: Real-time Backend 🔮
+- [x] Convex database integration  
+- [x] Real-time message synchronization  
+- [x] User presence (online/offline)  
+- [x] Message persistence  
 
-Join our community of developers creating universal apps.
+### Phase 4: Advanced Features 🔮
+- [ ] Multiple chat rooms  
+- [ ] Group conversations  
+- [ ] Media sharing (images, files)  
+- [ ] Push notifications  
+- [ ] Message reactions  
+- [ ] Reply functionality  
+- [ ] Message search  
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+### Phase 5: Polish 🔮
+- [ ] Dark/light mode  
+- [ ] Chat themes  
+- [ ] Animations and transitions  
+- [ ] Performance optimizations  
+- [ ] Offline support  
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Node.js 18+  
+- pnpm
+- Expo CLI  
+- iOS Simulator or Android Emulator (optional)  
+
+### Installation
+
+\`\`\`bash
+# Clone the repository
+git clone https://github.com/prudolfs/chat-app.git
+cd chat-app
+
+# Install dependencies
+pnpm install
+
+# Start the Expo app
+pnpm run dev
+\`\`\`
+
+### Development Commands
+
+\`\`\`bash
+# Start Expo development server
+pnpm run dev
+
+# Start Convex dev server
+npx convex dev
+\`\`\`
+
+## 📱 Testing the App
+
+1. **With Expo Go**: Scan the QR code from your terminal  
+2. **iOS Simulator**: Press `i` in the terminal  
+3. **Android Emulator**: Press `a` in the terminal  
+4. **Web**: Press `w` in the terminal  
+
+## 🎯 Goals & Purpose
+
+This project serves as a:
+
+- **Portfolio Demonstration** – Showcasing full-stack mobile development skills  
+- **Modern Architecture Example** – Expo + Convex + Better Auth  
+- **Learning Project** – Exploring cutting-edge React Native ecosystem  
+- **Open Source Contribution** – Clean, well-documented codebase  
+
+## 🔧 Development Notes
+
+### Current Focus
+Core chat functionality with clean, simple UI. Authentication and Convex integration are the next priorities.  
+
+### Architecture Decisions
+- **Expo + Convex First** – Keep backend simple, no extra servers  
+- **Better Auth Integration** – Modern and secure auth flow  
+- **TypeScript Everywhere** – Type safety across frontend and backend  
+- **Professional UI** – Trustable blue theme, clean design patterns  
+
+### Known Issues
+- Authentication not yet implemented (using mock data)  
+- Convex integration in progress  
+- Limited to single chat room currently  
+
+## 🤝 Contributing
+
+This is a personal portfolio project, but feedback and suggestions are welcome! Feel free to:
+
+- Open issues for bugs or feature requests  
+- Submit PRs for improvements  
+- Share feedback on the architecture or design  
+
+## 📄 License
+
+This project is open source and available under the [MIT License](LICENSE).  
+
+## 👨‍💻 Author
+
+**Rudolfs Pukitis**  
+
+- LinkedIn: [Rudolfs Pukitis](https://www.linkedin.com/in/rudolfs-pukitis-33027a154/)  
+- GitHub: [@prudolfs](https://github.com/prudolfs)  
+
+---
+
+**Status**: 🚧 **Actively in development** – New features being added regularly  
+
+_Last updated: September 2025_  
+
+## 💡 Why This Project?
+
+Building a chat app demonstrates:
+
+- **Real-time functionality** – WebSocket-like live updates with Convex  
+- **Complex state management** – Message ordering, presence, notifications  
+- **Mobile-first design** – Touch interactions, responsive layouts  
+- **Full-stack development** – Frontend, backend, database, authentication  
+- **Modern tooling mastery** – Expo, Convex, Better Auth  
+- **Production concerns** – Performance, offline support, scaling  
+
+This showcases the complete skill set needed for modern mobile application development.  
