@@ -51,7 +51,6 @@ export default function Register() {
       })
 
       if (result.error) {
-        console.log({ error: result.error })
         Alert.alert(
           'Registration Failed',
           result.error.message || 'Could not create account',

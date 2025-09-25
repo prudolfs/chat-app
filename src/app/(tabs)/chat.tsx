@@ -17,11 +17,9 @@ export default function ChatScreen() {
   const { data: session } = useSession()
   const user = session?.user
 
-  // Real-time messages from Convex
   const messages = useQuery(api.messages.getMessages) ?? []
   const sendMessage = useMutation(api.messages.sendMessage)
 
-  // Auto-scroll to bottom
   useEffect(() => {
     if (messages.length > 0) {
       setTimeout(() => {
@@ -80,7 +78,6 @@ export default function ChatScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white">
-      {/* Header */}
       <View className="bg-primary-500 px-4 py-4">
         <Text className="text-center text-xl font-bold text-white">
           Chat Room
@@ -90,7 +87,6 @@ export default function ChatScreen() {
         </Text>
       </View>
 
-      {/* Messages */}
       <ScrollView
         ref={scrollViewRef}
         className="flex-1 px-4 py-4"
@@ -115,7 +111,6 @@ export default function ChatScreen() {
         )}
       </ScrollView>
 
-      {/* Input */}
       <View className="flex-row items-center border-t border-secondary-200 bg-secondary-50 px-4 py-4">
         <TextInput
           className="mr-3 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
