@@ -39,14 +39,12 @@ _QR code will be available once deployed to Expo_
 
 ## 🏗️ Project Structure
 
-\`\`\`
 chat-app/
 ├── app/              # Expo Router app
 ├── convex/           # Convex backend functions
 ├── assets/           # Images, fonts, and other static assets
 ├── package.json
 └── README.md
-\`\`\`
 
 ## 📋 Roadmap
 
@@ -93,7 +91,6 @@ chat-app/
 
 ### Installation
 
-\`\`\`bash
 # Clone the repository
 git clone https://github.com/prudolfs/chat-app.git
 cd chat-app
@@ -103,17 +100,16 @@ pnpm install
 
 # Start the Expo app
 pnpm run dev
-\`\`\`
+
 
 ### Development Commands
 
-\`\`\`bash
 # Start Expo development server
 pnpm run dev
 
 # Start Convex dev server
 npx convex dev
-\`\`\`
+
 
 ## 📱 Testing the App
 
