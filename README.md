@@ -92,24 +92,31 @@ chat-app/
 ### Installation
 
 # Clone the repository
+```bash
 git clone https://github.com/prudolfs/chat-app.git
 cd chat-app
-
+```
 # Install dependencies
+```bash
 pnpm install
-
+```
 # Start the Expo app
+```bash
 pnpm run dev
+```
 
 
 ### Development Commands
 
 # Start Expo development server
+```bash
 pnpm run dev
+```
 
 # Start Convex dev server
+```bash
 npx convex dev
-
+```
 
 ## 📱 Testing the App
 
