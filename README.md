@@ -39,12 +39,13 @@ _QR code will be available once deployed to Expo_
 
 ## 🏗️ Project Structure
 
-chat-app/
-├── app/              # Expo Router app
-├── convex/           # Convex backend functions
-├── assets/           # Images, fonts, and other static assets
-├── package.json
-└── README.md
+    chat-app/
+    ├── src/              # Expo Router app
+    ├── convex/           # Convex backend functions
+    ├── assets/           # Images, fonts, and other static assets
+    ├── package.json
+    └── README.md
+
 
 ## 📋 Roadmap
 
