@@ -32,7 +32,6 @@ export default function ChatScreen() {
     }) ?? []
   const sendMessage = useMutation(api.messages.sendMessage)
 
-  // Keyboard handling
   useEffect(() => {
     const keyboardDidShowListener = Keyboard.addListener(
       'keyboardDidShow',
@@ -84,9 +83,9 @@ export default function ChatScreen() {
 
     return (
       <View className={`mb-4 ${isMe ? 'items-end' : 'items-start'}`}>
-        {!isMe && (
+        {!isMe && chatRoom?.type === 'group' && (
           <Text className="mb-1 ml-3 text-xs text-secondary-500">
-            {item.userName}
+            {item.userName || 'Unknown User'}
           </Text>
         )}
         <View
@@ -110,6 +109,20 @@ export default function ChatScreen() {
         </View>
       </View>
     )
+  }
+
+  const getOnlineStatus = () => {
+    if (
+      chatRoom?.type === 'direct' &&
+      'otherUser' in chatRoom &&
+      chatRoom.otherUser
+    ) {
+      return chatRoom.otherUser.isOnline ? 'Online' : 'Offline'
+    }
+    if (chatRoom?.type === 'group') {
+      return `Group Chat`
+    }
+    return null
   }
 
   if (!chatRoom) {
@@ -147,12 +160,21 @@ export default function ChatScreen() {
             <Text className="text-lg font-bold text-white">
               {chatRoom.displayName}
             </Text>
-            {/* {chatRoom.otherUser && (
-              <Text className="text-sm text-blue-100">
-                {chatRoom.otherUser.isOnline ? 'Online' : 'Offline'}
-              </Text>
-            )} */}
+            {getOnlineStatus() && (
+              <Text className="text-sm text-blue-100">{getOnlineStatus()}</Text>
+            )}
           </View>
+
+          {chatRoom.type === 'group' && (
+            <TouchableOpacity
+              className="h-10 w-10 items-center justify-center"
+              onPress={() => {
+                console.log('Group settings')
+              }}
+            >
+              <Text className="text-xl text-white">⋮</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <FlatList
@@ -172,7 +194,9 @@ export default function ChatScreen() {
                 No messages yet
               </Text>
               <Text className="text-center text-secondary-500">
-                Start the conversation! Say hello.
+                {chatRoom.type === 'direct'
+                  ? `Start the conversation with ${chatRoom.displayName}! Say hello.`
+                  : 'Start the conversation! Say hello.'}
               </Text>
             </View>
           }
@@ -186,7 +210,7 @@ export default function ChatScreen() {
         >
           <TextInput
             className="mr-3 max-h-20 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
-            placeholder="Type a message..."
+            placeholder={`Message ${chatRoom.displayName}...`}
             value={newMessage}
             onChangeText={setNewMessage}
             multiline

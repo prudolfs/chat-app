@@ -71,11 +71,13 @@ export default function ChatsScreen() {
   }
 
   const renderChatItem = ({ item }: { item: any }) => {
-    const otherParticipantId = item.participants.find(
-      (id: string) => id !== user?.id,
-    )
-    const displayName =
-      item.name || `User ${otherParticipantId?.substring(0, 8)}`
+    let displayName = 'Unknown Chat'
+
+    if (item.type === 'direct') {
+      displayName = item.displayName || 'Direct Chat'
+    } else if (item.type === 'group') {
+      displayName = item.name || 'Group Chat'
+    }
 
     return (
       <TouchableOpacity
@@ -207,7 +209,7 @@ export default function ChatsScreen() {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View className="flex-1 items-center justify-center py-20">
-                  <Text className="mb-4 text-4xl">🔍</Text>
+                  <Text className="mb-4 text-4xl">�🔍</Text>
                   <Text className="text-center text-secondary-600">
                     {newChatSearch
                       ? 'No users found'

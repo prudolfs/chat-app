@@ -7,16 +7,18 @@ export default defineSchema({
   chatRooms: defineTable({
     name: v.optional(v.string()), // For group chats
     type: v.union(v.literal('direct'), v.literal('group')),
-    participants: v.array(v.string()), // Better Auth user IDs
     createdBy: v.string(), // Better Auth user ID
     lastMessageId: v.optional(v.id('messages')),
     lastMessageTime: v.number(),
     lastMessageText: v.optional(v.string()), // Cache for chat list
     createdAt: v.number(),
     updatedAt: v.number(),
-  })
-    .index('by_participants', ['participants'])
-    .index('by_last_message_time', ['lastMessageTime']),
+  }).index('by_last_message_time', ['lastMessageTime']),
+
+  userChatRooms: defineTable({
+    userId: v.string(),
+    chatRoomId: v.id('chatRooms'),
+  }).index('by_user', ['userId']),
 
   messages: defineTable({
     chatRoomId: v.id('chatRooms'),
