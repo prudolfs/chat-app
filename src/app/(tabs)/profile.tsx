@@ -25,7 +25,7 @@ export default function ProfileScreen() {
         onPress: async () => {
           try {
             await signOut()
-            router.replace('/(auth)/welcome')
+            router.navigate('/(auth)/welcome')
           } catch (error) {
             console.error('Sign out error:', error)
             Alert.alert('Error', 'Failed to sign out')
@@ -51,14 +51,12 @@ export default function ProfileScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        {/* Header - Fixed at top */}
         <View className="bg-primary-500 px-4 py-4">
           <Text className="text-center text-xl font-bold text-white">
             Profile
           </Text>
         </View>
 
-        {/* Scrollable Content */}
         <ScrollView
           className="flex-1"
           showsVerticalScrollIndicator={false}
@@ -68,7 +66,6 @@ export default function ProfileScreen() {
             paddingBottom: 120, // Extra space for tab bar
           }}
         >
-          {/* Profile Info */}
           <View className="mb-8 items-center">
             <View className="mb-4 h-24 w-24 items-center justify-center rounded-full bg-primary-500 shadow-lg">
               <Text className="text-3xl font-bold text-white">
@@ -84,7 +81,6 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          {/* User Info Cards */}
           <View className="mb-8 space-y-3">
             <View className="rounded-xl bg-secondary-50 p-4">
               <Text className="mb-1 text-sm font-medium text-secondary-500">
@@ -133,7 +129,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          {/* Settings Actions */}
           <View className="mb-8 space-y-3">
             <TouchableOpacity className="flex-row items-center justify-between rounded-xl bg-secondary-100 px-4 py-4 active:bg-secondary-200">
               <View className="flex-row items-center">
@@ -184,7 +179,6 @@ export default function ProfileScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* App Info */}
           <View className="mb-8 rounded-xl bg-secondary-50 p-4">
             <Text className="mb-2 text-sm font-medium text-secondary-500">
               App Information
@@ -196,7 +190,6 @@ export default function ProfileScreen() {
             </Text>
           </View>
 
-          {/* Sign Out Button */}
           <TouchableOpacity
             className="mb-4 rounded-xl bg-red-500 px-8 py-4 shadow-sm active:bg-red-600"
             onPress={handleSignOut}
@@ -207,7 +200,6 @@ export default function ProfileScreen() {
             </View>
           </TouchableOpacity>
 
-          {/* Extra space to ensure content is above tabs */}
           <View className="h-8" />
         </ScrollView>
       </KeyboardAvoidingView>

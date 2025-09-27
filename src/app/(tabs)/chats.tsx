@@ -22,11 +22,20 @@ export default function ChatsScreen() {
   const { data: session } = useSession()
   const user = session?.user
 
-  const chatRooms = useQuery(api.chatRooms.getUserChatRooms) ?? []
+  const chatRooms =
+    useQuery(api.chatRooms.getUserChatRooms, user ? {} : 'skip') ?? []
+
   const searchResults =
-    useQuery(api.chatRooms.searchChatRooms, { searchTerm }) ?? []
+    useQuery(
+      api.chatRooms.searchChatRooms,
+      user && searchTerm ? { searchTerm } : 'skip',
+    ) ?? []
+
   const userSearchResults =
-    useQuery(api.users.searchUsers, { searchTerm: newChatSearch }) ?? []
+    useQuery(
+      api.users.searchUsers,
+      user && newChatSearch ? { searchTerm: newChatSearch } : 'skip',
+    ) ?? []
 
   const createProfile = useMutation(api.users.createOrUpdateUserProfile)
   const createDirectChat = useMutation(api.chatRooms.createOrGetDirectChat)
@@ -124,6 +133,21 @@ export default function ChatsScreen() {
     </TouchableOpacity>
   )
 
+  if (!user) {
+    return (
+      <SafeAreaView className="flex-1 bg-white">
+        <View className="bg-primary-500 px-4 py-4">
+          <Text className="text-xl font-bold text-white">Chats</Text>
+        </View>
+        <View className="flex-1 items-center justify-center">
+          <Text className="text-secondary-500">
+            Please log in to view chats
+          </Text>
+        </View>
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="bg-primary-500 px-4 py-4">
@@ -177,7 +201,6 @@ export default function ChatsScreen() {
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             className="flex-1"
           >
-            {/* Modal Header */}
             <View className="flex-row items-center justify-between border-b border-secondary-200 px-4 py-4">
               <Text className="text-lg font-bold">New Chat</Text>
               <TouchableOpacity
@@ -209,7 +232,7 @@ export default function ChatsScreen() {
               showsVerticalScrollIndicator={false}
               ListEmptyComponent={
                 <View className="flex-1 items-center justify-center py-20">
-                  <Text className="mb-4 text-4xl">�🔍</Text>
+                  <Text className="mb-4 text-4xl">🔍</Text>
                   <Text className="text-center text-secondary-600">
                     {newChatSearch
                       ? 'No users found'

@@ -9,7 +9,7 @@ export default function Index() {
   useEffect(() => {
     if (!isPending) {
       if (session?.user) {
-        router.replace('/(tabs)/chat')
+        router.replace('/(tabs)/chats')
       } else {
         router.replace('/(auth)/welcome')
       }

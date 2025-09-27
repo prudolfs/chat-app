@@ -78,7 +78,7 @@ _QR code will be available once deployed to Expo_
 - [ ] Media sharing (images, files)
 - [ ] Push notifications
 - [ ] Message reactions
-- [ ] Reply functionality
+- [x] Reply functionality
 - [ ] Message search
 
 ### Phase 5: Polish 🔮
