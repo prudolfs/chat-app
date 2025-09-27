@@ -10,8 +10,10 @@ import {
   ScrollView,
   Alert,
 } from 'react-native'
+import { useMutation } from 'convex/react'
 import { signUp } from '@/lib/auth-client'
 import { FormField } from '@/components/ui/form-field'
+import { api } from '~/_generated/api'
 
 export default function Register() {
   const [name, setName] = useState('')
@@ -19,6 +21,7 @@ export default function Register() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
+  const createProfile = useMutation(api.users.createOrUpdateUserProfile)
 
   const handleRegister = async () => {
     if (!name || !email || !password || !confirmPassword) {
@@ -55,9 +58,11 @@ export default function Register() {
           'Registration Failed',
           result.error.message || 'Could not create account',
         )
-      } else {
-        router.replace('/')
+        return
       }
+
+      createProfile()
+      router.replace('/')
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred')
       console.error('Registration error:', error)

@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import {
   View,
   Text,
@@ -12,15 +12,12 @@ import {
 } from 'react-native'
 import { router } from 'expo-router'
 import { useQuery, useMutation } from 'convex/react'
-import { useSession } from '@/lib/auth-client'
 import { api } from '~/_generated/api'
 
 export default function ChatsScreen() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewChatModal, setShowNewChatModal] = useState(false)
   const [newChatSearch, setNewChatSearch] = useState('')
-  const { data: session } = useSession()
-  const user = session?.user
 
   const chatRooms = useQuery(api.chatRooms.getUserChatRooms) ?? []
 
@@ -36,14 +33,7 @@ export default function ChatsScreen() {
       newChatSearch ? { searchTerm: newChatSearch } : 'skip',
     ) ?? []
 
-  const createProfile = useMutation(api.users.createOrUpdateUserProfile)
   const createDirectChat = useMutation(api.chatRooms.createOrGetDirectChat)
-
-  useEffect(() => {
-    if (user) {
-      createProfile()
-    }
-  }, [user])
 
   const displayData = useMemo(() => {
     return searchTerm.trim() ? searchResults : chatRooms
