@@ -1,20 +1,10 @@
-import React, { useEffect } from 'react'
-import { View, Text } from 'react-native'
-import { router } from 'expo-router'
+import React from 'react'
+import { Redirect, Stack } from 'expo-router'
 import { useSession } from '@/lib/auth-client'
+import { View, Text } from 'react-native'
 
-export default function Index() {
+export default function ProtectedLayout() {
   const { data: session, isPending } = useSession()
-
-  useEffect(() => {
-    if (!isPending) {
-      if (session?.user) {
-        router.replace('/(tabs)/chats')
-      } else {
-        router.replace('/(auth)/welcome')
-      }
-    }
-  }, [session, isPending])
 
   if (isPending) {
     return (
@@ -30,5 +20,9 @@ export default function Index() {
     )
   }
 
-  return null
+  if (!session?.user) {
+    return <Redirect href="/(auth)/welcome" />
+  }
+
+  return <Stack screenOptions={{ headerShown: false }} />
 }

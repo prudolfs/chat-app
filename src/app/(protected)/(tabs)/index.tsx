@@ -22,19 +22,18 @@ export default function ChatsScreen() {
   const { data: session } = useSession()
   const user = session?.user
 
-  const chatRooms =
-    useQuery(api.chatRooms.getUserChatRooms, user ? {} : 'skip') ?? []
+  const chatRooms = useQuery(api.chatRooms.getUserChatRooms) ?? []
 
   const searchResults =
     useQuery(
       api.chatRooms.searchChatRooms,
-      user && searchTerm ? { searchTerm } : 'skip',
+      searchTerm ? { searchTerm } : 'skip',
     ) ?? []
 
   const userSearchResults =
     useQuery(
       api.users.searchUsers,
-      user && newChatSearch ? { searchTerm: newChatSearch } : 'skip',
+      newChatSearch ? { searchTerm: newChatSearch } : 'skip',
     ) ?? []
 
   const createProfile = useMutation(api.users.createOrUpdateUserProfile)
@@ -132,21 +131,6 @@ export default function ChatsScreen() {
       </View>
     </TouchableOpacity>
   )
-
-  if (!user) {
-    return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="bg-primary-500 px-4 py-4">
-          <Text className="text-xl font-bold text-white">Chats</Text>
-        </View>
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-secondary-500">
-            Please log in to view chats
-          </Text>
-        </View>
-      </SafeAreaView>
-    )
-  }
 
   return (
     <SafeAreaView className="flex-1 bg-white">

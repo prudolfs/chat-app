@@ -18,11 +18,7 @@ export default function RootLayout() {
   return (
     <StrictMode>
       <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="(auth)" />
-          <Stack.Screen name="(tabs)" />
-        </Stack>
+        <Stack screenOptions={{ headerShown: false }} />
       </ConvexBetterAuthProvider>
     </StrictMode>
   )

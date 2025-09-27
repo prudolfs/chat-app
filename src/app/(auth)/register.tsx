@@ -56,7 +56,7 @@ export default function Register() {
           result.error.message || 'Could not create account',
         )
       } else {
-        router.replace('/(tabs)/chats')
+        router.replace('/')
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred')

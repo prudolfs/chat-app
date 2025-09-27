@@ -37,7 +37,7 @@ export default function Login() {
           result.error.message || 'Invalid credentials',
         )
       } else {
-        router.replace('/(tabs)/chats')
+        router.replace('/')
       }
     } catch (error) {
       Alert.alert('Error', 'An unexpected error occurred')
@@ -112,7 +112,7 @@ export default function Login() {
               <Text className="text-secondary-600">
                 Don't have an account?{' '}
               </Text>
-              <TouchableOpacity onPress={() => router.push('/(auth)/register')}>
+              <TouchableOpacity onPress={() => router.push('/register')}>
                 <Text className="font-semibold text-primary-500">Sign up</Text>
               </TouchableOpacity>
             </View>

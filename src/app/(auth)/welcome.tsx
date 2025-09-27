@@ -29,7 +29,7 @@ export default function Welcome() {
         <View className="w-full space-y-4">
           <TouchableOpacity
             className="rounded-xl bg-primary-500 px-8 py-4 shadow-sm active:bg-primary-600"
-            onPress={() => router.push('/(auth)/register')}
+            onPress={() => router.push('/register')}
           >
             <Text className="text-center text-lg font-semibold text-white">
               Create Account
@@ -38,7 +38,7 @@ export default function Welcome() {
 
           <TouchableOpacity
             className="rounded-xl border border-secondary-300 px-8 py-4 active:bg-secondary-50"
-            onPress={() => router.push('/(auth)/login')}
+            onPress={() => router.push('/login')}
           >
             <Text className="text-center text-lg font-semibold text-secondary-700">
               Sign In

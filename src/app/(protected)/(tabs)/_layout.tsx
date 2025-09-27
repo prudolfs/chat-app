@@ -40,7 +40,7 @@ export default function TabLayout() {
       }}
     >
       <Tabs.Screen
-        name="chats"
+        name="index"
         options={{
           tabBarIcon: ({ focused }) => (
             <TabIcon focused={focused} label="Chats">
