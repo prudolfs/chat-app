@@ -11,7 +11,7 @@ const TabIcon = ({
   children: string
   label: string
 }) => (
-  <View className="items-center justify-center">
+  <View className="w-16 items-center justify-center">
     <Text className={`text-2xl ${focused ? 'opacity-100' : 'opacity-50'}`}>
       {children}
     </Text>
