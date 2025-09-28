@@ -1,5 +1,6 @@
 import '../global.css'
 import React, { StrictMode } from 'react'
+import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Stack } from 'expo-router'
 import { ConvexReactClient } from 'convex/react'
 import { ConvexBetterAuthProvider } from '@convex-dev/better-auth/react'
@@ -17,9 +18,11 @@ const convex = new ConvexReactClient(
 export default function RootLayout() {
   return (
     <StrictMode>
-      <ConvexBetterAuthProvider client={convex} authClient={authClient}>
-        <Stack screenOptions={{ headerShown: false }} />
-      </ConvexBetterAuthProvider>
+      <SafeAreaProvider>
+        <ConvexBetterAuthProvider client={convex} authClient={authClient}>
+          <Stack screenOptions={{ headerShown: false }} />
+        </ConvexBetterAuthProvider>
+      </SafeAreaProvider>
     </StrictMode>
   )
 }

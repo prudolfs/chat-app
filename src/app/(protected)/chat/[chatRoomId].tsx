@@ -2,24 +2,27 @@ import React, { useState, useRef, useEffect } from 'react'
 import {
   View,
   Text,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   FlatList,
-  KeyboardAvoidingView,
   Platform,
   Keyboard,
+  Animated,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router, useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from 'convex/react'
 import { useSession } from '@/lib/auth-client'
+import { cn } from '@/lib/utils'
 import { api } from '~/_generated/api'
 
 export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: string }>()
   const [newMessage, setNewMessage] = useState('')
-  const [keyboardHeight, setKeyboardHeight] = useState(0)
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const flatListRef = useRef<FlatList>(null)
+  const keyboardHeightAnim = useRef(new Animated.Value(0)).current
+  const insets = useSafeAreaInsets()
   const { data: session } = useSession()
   const user = session?.user
 
@@ -33,24 +36,38 @@ export default function ChatScreen() {
   const sendMessage = useMutation(api.messages.sendMessage)
 
   useEffect(() => {
-    const keyboardDidShowListener = Keyboard.addListener(
-      'keyboardDidShow',
+    const keyboardWillShowListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow',
       (e) => {
-        setKeyboardHeight(e.endCoordinates.height)
+        const height = e.endCoordinates.height
+        setIsKeyboardVisible(true)
+
+        Animated.timing(keyboardHeightAnim, {
+          toValue: height,
+          duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
+          useNativeDriver: false,
+        }).start()
       },
     )
-    const keyboardDidHideListener = Keyboard.addListener(
-      'keyboardDidHide',
-      () => {
-        setKeyboardHeight(0)
+
+    const keyboardWillHideListener = Keyboard.addListener(
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide',
+      (e) => {
+        setIsKeyboardVisible(false)
+
+        Animated.timing(keyboardHeightAnim, {
+          toValue: 0,
+          duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
+          useNativeDriver: false,
+        }).start()
       },
     )
 
     return () => {
-      keyboardDidShowListener.remove()
-      keyboardDidHideListener.remove()
+      keyboardWillShowListener.remove()
+      keyboardWillHideListener.remove()
     }
-  }, [])
+  }, [keyboardHeightAnim])
 
   useEffect(() => {
     if (messages.length > 0) {
@@ -59,6 +76,14 @@ export default function ChatScreen() {
       }, 100)
     }
   }, [messages.length])
+
+  useEffect(() => {
+    if (isKeyboardVisible && messages.length > 0) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+      }, 300)
+    }
+  }, [isKeyboardVisible, messages.length])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return
@@ -82,26 +107,33 @@ export default function ChatScreen() {
     })
 
     return (
-      <View className={`mb-4 ${isMe ? 'items-end' : 'items-start'}`}>
+      <View className={cn('mb-4', isMe ? 'items-end' : 'items-start')}>
         {!isMe && chatRoom?.type === 'group' && (
           <Text className="mb-1 ml-3 text-xs text-secondary-500">
             {item.userName || 'Unknown User'}
           </Text>
         )}
         <View
-          className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+          className={cn(
+            'max-w-[80%] rounded-2xl px-4 py-3',
             isMe
               ? 'rounded-br-md bg-primary-500'
-              : 'rounded-bl-md bg-secondary-100'
-          }`}
+              : 'rounded-bl-md bg-secondary-100',
+          )}
         >
           <Text
-            className={`text-base ${isMe ? 'text-white' : 'text-secondary-900'}`}
+            className={cn(
+              'text-base',
+              isMe ? 'text-white' : 'text-secondary-900',
+            )}
           >
             {item.text}
           </Text>
           <Text
-            className={`mt-1 text-xs ${isMe ? 'text-blue-100' : 'text-secondary-500'}`}
+            className={cn(
+              'mt-1 text-xs',
+              isMe ? 'text-blue-100' : 'text-secondary-500',
+            )}
           >
             {timeString}
             {item.edited && ' (edited)'}
@@ -127,21 +159,16 @@ export default function ChatScreen() {
 
   if (!chatRoom) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
-        <View className="flex-1 items-center justify-center">
-          <Text className="text-secondary-500">Loading chat...</Text>
-        </View>
-      </SafeAreaView>
+      <View className="flex-1 items-center justify-center">
+        <Text className="text-secondary-500">Loading chat...</Text>
+      </View>
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-      >
+    <View className="flex-1 bg-white">
+      <View className="flex-1">
+        <View style={{ paddingTop: insets.top }} className="bg-primary-500" />
         <View className="flex-row items-center bg-primary-500 px-4 py-4">
           <TouchableOpacity
             className="mr-3 h-10 w-10 items-center justify-center"
@@ -177,64 +204,83 @@ export default function ChatScreen() {
           )}
         </View>
 
-        <FlatList
-          ref={flatListRef}
-          data={messages}
-          renderItem={renderMessage}
-          keyExtractor={(item) => item._id}
-          className="flex-1 px-4"
-          contentContainerStyle={{ paddingVertical: 16 }}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View className="min-h-[400px] flex-1 items-center justify-center">
-              <View className="mb-6 rounded-full bg-secondary-100 p-8">
-                <Text className="text-4xl">💬</Text>
-              </View>
-              <Text className="mb-2 text-center text-lg text-secondary-600">
-                No messages yet
-              </Text>
-              <Text className="text-center text-secondary-500">
-                {chatRoom.type === 'direct'
-                  ? `Start the conversation with ${chatRoom.displayName}! Say hello.`
-                  : 'Start the conversation! Say hello.'}
-              </Text>
-            </View>
-          }
-        />
-
-        <View
-          className="flex-row items-end border-t border-secondary-200 bg-secondary-50 px-4 py-4"
+        <Animated.View
           style={{
-            marginBottom: Platform.OS === 'ios' ? keyboardHeight : 0,
+            flex: 1,
+            paddingBottom: keyboardHeightAnim,
           }}
         >
-          <TextInput
-            className="mr-3 max-h-20 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
-            placeholder={`Message ${chatRoom.displayName}...`}
-            value={newMessage}
-            onChangeText={setNewMessage}
-            multiline
-            maxLength={1000}
-            textAlignVertical="center"
-            onSubmitEditing={() => {
-              if (!newMessage.includes('\n')) {
-                handleSendMessage()
+          <View className="flex-1">
+            <FlatList
+              ref={flatListRef}
+              data={messages}
+              renderItem={renderMessage}
+              keyExtractor={(item) => item._id}
+              className="flex-1 px-4"
+              contentContainerStyle={{
+                paddingVertical: 16,
+                flexGrow: 1,
+              }}
+              showsVerticalScrollIndicator={false}
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10,
+              }}
+              ListEmptyComponent={
+                <View className="min-h-[400px] flex-1 items-center justify-center">
+                  <View className="mb-6 rounded-full bg-secondary-100 p-8">
+                    <Text className="text-4xl">💬</Text>
+                  </View>
+                  <Text className="mb-2 text-center text-lg text-secondary-600">
+                    No messages yet
+                  </Text>
+                  <Text className="text-center text-secondary-500">
+                    {chatRoom.type === 'direct'
+                      ? `Start the conversation with ${chatRoom.displayName}! Say hello.`
+                      : 'Start the conversation! Say hello.'}
+                  </Text>
+                </View>
               }
-            }}
-            blurOnSubmit={false}
-          />
+            />
+          </View>
 
-          <TouchableOpacity
-            className={`h-12 w-12 items-center justify-center rounded-full ${
-              newMessage.trim() ? 'bg-primary-500' : 'bg-secondary-300'
-            }`}
-            onPress={handleSendMessage}
-            disabled={!newMessage.trim()}
+          <View
+            className="flex-row items-end border-t border-secondary-200 bg-secondary-50 px-4 py-4"
+            style={{
+              paddingBottom: isKeyboardVisible
+                ? 16
+                : Math.max(16, insets.bottom),
+            }}
           >
-            <Text className="text-lg text-white">→</Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+            <TextInput
+              className="mr-3 max-h-20 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
+              placeholder={`Message ${chatRoom.displayName}...`}
+              value={newMessage}
+              onChangeText={setNewMessage}
+              multiline
+              maxLength={1000}
+              textAlignVertical="center"
+              onSubmitEditing={() => {
+                if (!newMessage.includes('\n')) {
+                  handleSendMessage()
+                }
+              }}
+              blurOnSubmit={false}
+            />
+
+            <TouchableOpacity
+              className={cn(
+                'h-12 w-12 items-center justify-center rounded-full',
+                newMessage.trim() ? 'bg-primary-500' : 'bg-secondary-300',
+              )}
+              onPress={handleSendMessage}
+              disabled={!newMessage.trim()}
+            >
+              <Text className="text-lg text-white">→</Text>
+            </TouchableOpacity>
+          </View>
+        </Animated.View>
+      </View>
+    </View>
   )
 }
