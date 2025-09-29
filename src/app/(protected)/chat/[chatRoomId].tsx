@@ -15,9 +15,11 @@ import { useQuery, useMutation } from 'convex/react'
 import { useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 import { api } from '~/_generated/api'
+import { Id } from '~/_generated/dataModel'
+import type { Doc } from '~/_generated/dataModel'
 
 export default function ChatScreen() {
-  const { chatRoomId } = useLocalSearchParams<{ chatRoomId: string }>()
+  const { chatRoomId } = useLocalSearchParams<{ chatRoomId: Id<'chatRooms'> }>()
   const [newMessage, setNewMessage] = useState('')
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const [isInitiallyRendered, setIsInitiallyRendered] = useState(false)
@@ -29,11 +31,11 @@ export default function ChatScreen() {
   const user = session?.user
 
   const chatRoom = useQuery(api.chatRooms.getChatRoomDetails, {
-    chatRoomId: chatRoomId as any,
+    chatRoomId: chatRoomId,
   })
   const messages =
     useQuery(api.messages.getChatMessages, {
-      chatRoomId: chatRoomId as any,
+      chatRoomId: chatRoomId,
     }) ?? []
   const sendMessage = useMutation(api.messages.sendMessage)
 
@@ -98,7 +100,7 @@ export default function ChatScreen() {
 
     try {
       await sendMessage({
-        chatRoomId: chatRoomId as any,
+        chatRoomId: chatRoomId,
         text: newMessage.trim(),
       })
       setNewMessage('')
@@ -110,7 +112,7 @@ export default function ChatScreen() {
     }
   }
 
-  const renderMessage = ({ item }: { item: any }) => {
+  const renderMessage = ({ item }: { item: Doc<'messages'> }) => {
     const isMe = item.userId === user?.id
     const timeString = new Date(item.timestamp).toLocaleTimeString([], {
       hour: '2-digit',
