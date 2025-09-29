@@ -93,18 +93,6 @@ export default function ChatScreen() {
     }
   }, [messages.length, isInitiallyRendered])
 
-  useEffect(() => {
-    if (
-      isKeyboardVisible &&
-      hasScrolledInitially.current &&
-      messages.length > 0
-    ) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true })
-      }, 100)
-    }
-  }, [isKeyboardVisible])
-
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return
 
@@ -114,6 +102,9 @@ export default function ChatScreen() {
         text: newMessage.trim(),
       })
       setNewMessage('')
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+      }, 100)
     } catch (error) {
       console.error('Failed to send message:', error)
     }
@@ -188,8 +179,11 @@ export default function ChatScreen() {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-1">
-        <View style={{ paddingTop: insets.top }} className="bg-primary-500" />
-        <View className="flex-row items-center bg-primary-500 px-4 py-4">
+        <View
+          style={{ paddingTop: insets.top }}
+          className="z-10 bg-primary-500"
+        />
+        <View className="z-10 flex-row items-center bg-primary-500 px-4 py-4">
           <TouchableOpacity
             className="mr-3 h-10 w-10 items-center justify-center"
             onPress={() => router.back()}
@@ -227,7 +221,15 @@ export default function ChatScreen() {
         <Animated.View
           style={{
             flex: 1,
-            paddingBottom: keyboardHeightAnim,
+            zIndex: 1,
+            transform: [
+              {
+                translateY: keyboardHeightAnim.interpolate({
+                  inputRange: [0, 1000],
+                  outputRange: [0, -1000],
+                }),
+              },
+            ],
           }}
         >
           <View className="flex-1">
@@ -240,6 +242,7 @@ export default function ChatScreen() {
               contentContainerStyle={{
                 paddingVertical: 16,
                 flexGrow: 1,
+                justifyContent: 'flex-end',
               }}
               showsVerticalScrollIndicator={false}
               initialScrollIndex={
@@ -259,6 +262,10 @@ export default function ChatScreen() {
                 if (!hasScrolledInitially.current && messages.length > 0) {
                   flatListRef.current?.scrollToEnd({ animated: false })
                 }
+              }}
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+                autoscrollToTopThreshold: 10,
               }}
               ListEmptyComponent={
                 <View className="min-h-[400px] flex-1 items-center justify-center">
