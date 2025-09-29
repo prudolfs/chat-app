@@ -22,9 +22,7 @@ export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: Id<'chatRooms'> }>()
   const [newMessage, setNewMessage] = useState('')
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
-  const [isInitiallyRendered, setIsInitiallyRendered] = useState(false)
   const flatListRef = useRef<FlatList>(null)
-  const hasScrolledInitially = useRef(false)
   const keyboardHeightAnim = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
   const { data: session } = useSession()
@@ -49,7 +47,7 @@ export default function ChatScreen() {
         Animated.timing(keyboardHeightAnim, {
           toValue: height,
           duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }).start()
       },
     )
@@ -62,7 +60,7 @@ export default function ChatScreen() {
         Animated.timing(keyboardHeightAnim, {
           toValue: 0,
           duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
-          useNativeDriver: false,
+          useNativeDriver: true,
         }).start()
       },
     )
@@ -71,29 +69,15 @@ export default function ChatScreen() {
       keyboardWillShowListener.remove()
       keyboardWillHideListener.remove()
     }
-  }, [keyboardHeightAnim])
+  }, [])
 
   useEffect(() => {
-    if (messages.length > 0 && !hasScrolledInitially.current) {
-      requestAnimationFrame(() => {
-        flatListRef.current?.scrollToEnd({ animated: false })
-        hasScrolledInitially.current = true
-        setIsInitiallyRendered(true)
-      })
-    }
-  }, [messages.length])
-
-  useEffect(() => {
-    if (
-      messages.length > 0 &&
-      hasScrolledInitially.current &&
-      isInitiallyRendered
-    ) {
+    if (messages.length > 0) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true })
       }, 100)
     }
-  }, [messages.length, isInitiallyRendered])
+  }, [messages.length])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return
@@ -104,9 +88,6 @@ export default function ChatScreen() {
         text: newMessage.trim(),
       })
       setNewMessage('')
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true })
-      }, 100)
     } catch (error) {
       console.error('Failed to send message:', error)
     }
@@ -247,24 +228,6 @@ export default function ChatScreen() {
                 justifyContent: 'flex-end',
               }}
               showsVerticalScrollIndicator={false}
-              initialScrollIndex={
-                messages.length > 0 ? messages.length - 1 : undefined
-              }
-              getItemLayout={(data, index) => ({
-                length: 100,
-                offset: 100 * index,
-                index,
-              })}
-              onScrollToIndexFailed={() => {
-                setTimeout(() => {
-                  flatListRef.current?.scrollToEnd({ animated: false })
-                }, 100)
-              }}
-              onContentSizeChange={() => {
-                if (!hasScrolledInitially.current && messages.length > 0) {
-                  flatListRef.current?.scrollToEnd({ animated: false })
-                }
-              }}
               maintainVisibleContentPosition={{
                 minIndexForVisible: 0,
                 autoscrollToTopThreshold: 10,
