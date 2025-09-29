@@ -20,7 +20,9 @@ export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: string }>()
   const [newMessage, setNewMessage] = useState('')
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+  const [isInitiallyRendered, setIsInitiallyRendered] = useState(false)
   const flatListRef = useRef<FlatList>(null)
+  const hasScrolledInitially = useRef(false)
   const keyboardHeightAnim = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
   const { data: session } = useSession()
@@ -70,20 +72,38 @@ export default function ChatScreen() {
   }, [keyboardHeightAnim])
 
   useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true })
-      }, 100)
+    if (messages.length > 0 && !hasScrolledInitially.current) {
+      requestAnimationFrame(() => {
+        flatListRef.current?.scrollToEnd({ animated: false })
+        hasScrolledInitially.current = true
+        setIsInitiallyRendered(true)
+      })
     }
   }, [messages.length])
 
   useEffect(() => {
-    if (isKeyboardVisible && messages.length > 0) {
+    if (
+      messages.length > 0 &&
+      hasScrolledInitially.current &&
+      isInitiallyRendered
+    ) {
       setTimeout(() => {
         flatListRef.current?.scrollToEnd({ animated: true })
-      }, 300)
+      }, 100)
     }
-  }, [isKeyboardVisible, messages.length])
+  }, [messages.length, isInitiallyRendered])
+
+  useEffect(() => {
+    if (
+      isKeyboardVisible &&
+      hasScrolledInitially.current &&
+      messages.length > 0
+    ) {
+      setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true })
+      }, 100)
+    }
+  }, [isKeyboardVisible])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return
@@ -222,9 +242,23 @@ export default function ChatScreen() {
                 flexGrow: 1,
               }}
               showsVerticalScrollIndicator={false}
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 10,
+              initialScrollIndex={
+                messages.length > 0 ? messages.length - 1 : undefined
+              }
+              getItemLayout={(data, index) => ({
+                length: 100,
+                offset: 100 * index,
+                index,
+              })}
+              onScrollToIndexFailed={() => {
+                setTimeout(() => {
+                  flatListRef.current?.scrollToEnd({ animated: false })
+                }, 100)
+              }}
+              onContentSizeChange={() => {
+                if (!hasScrolledInitially.current && messages.length > 0) {
+                  flatListRef.current?.scrollToEnd({ animated: false })
+                }
               }}
               ListEmptyComponent={
                 <View className="min-h-[400px] flex-1 items-center justify-center">
