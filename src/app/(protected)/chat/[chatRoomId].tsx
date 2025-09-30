@@ -36,6 +36,7 @@ export default function ChatScreen() {
       chatRoomId: chatRoomId,
     }) ?? []
   const sendMessage = useMutation(api.messages.sendMessage)
+  const reversedMessages = [...messages].reverse()
 
   useEffect(() => {
     const keyboardWillShowListener = Keyboard.addListener(
@@ -46,7 +47,7 @@ export default function ChatScreen() {
 
         Animated.timing(keyboardHeightAnim, {
           toValue: height,
-          duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
+          duration: Platform.OS === 'ios' ? e.duration : 250,
           useNativeDriver: true,
         }).start()
       },
@@ -59,7 +60,7 @@ export default function ChatScreen() {
 
         Animated.timing(keyboardHeightAnim, {
           toValue: 0,
-          duration: Platform.OS === 'ios' ? e.duration || 250 : 250,
+          duration: Platform.OS === 'ios' ? e.duration : 250,
           useNativeDriver: true,
         }).start()
       },
@@ -69,15 +70,7 @@ export default function ChatScreen() {
       keyboardWillShowListener.remove()
       keyboardWillHideListener.remove()
     }
-  }, [])
-
-  useEffect(() => {
-    if (messages.length > 0) {
-      setTimeout(() => {
-        flatListRef.current?.scrollToEnd({ animated: true })
-      }, 100)
-    }
-  }, [messages.length])
+  }, [keyboardHeightAnim])
 
   const handleSendMessage = async () => {
     if (!newMessage.trim()) return
@@ -218,22 +211,20 @@ export default function ChatScreen() {
           <View className="flex-1">
             <FlatList
               ref={flatListRef}
-              data={messages}
+              data={reversedMessages}
               renderItem={renderMessage}
               keyExtractor={(item) => item._id}
               className="flex-1 px-4"
               contentContainerStyle={{
                 paddingVertical: 16,
-                flexGrow: 1,
-                justifyContent: 'flex-end',
               }}
+              inverted
               showsVerticalScrollIndicator={false}
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-                autoscrollToTopThreshold: 10,
-              }}
               ListEmptyComponent={
-                <View className="min-h-[400px] flex-1 items-center justify-center">
+                <View
+                  className="min-h-[400px] flex-1 items-center justify-center"
+                  style={{ transform: [{ scaleY: -1 }] }}
+                >
                   <View className="mb-6 rounded-full bg-secondary-100 p-8">
                     <Text className="text-4xl">💬</Text>
                   </View>
