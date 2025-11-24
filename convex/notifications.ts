@@ -6,6 +6,7 @@ type Participant = {
   userId: string
   profile: {
     pushToken?: string
+    isOnline?: boolean
   } | null
 }
 
@@ -55,9 +56,13 @@ export const sendPushNotifications = action({
       return { sent: 0 }
     }
 
-    // Filter out the sender and get their push tokens
+    // Filter out the sender and only send to offline users (app closed/backgrounded)
+    // Users with app open will see messages in real-time, so no push notification needed
     const recipients: NotificationRecipient[] = participants
-      .filter((p: Participant) => p.userId !== senderId && p.profile?.pushToken)
+      .filter(
+        (p: Participant) =>
+          p.userId !== senderId && p.profile?.pushToken && !p.profile.isOnline, // Only send to offline users
+      )
       .map((p: Participant) => ({
         to: p.profile!.pushToken!,
         sound: 'default',

@@ -76,7 +76,7 @@ _QR code will be available once deployed to Expo_
 - [x] Multiple chat rooms
 - [x] Group conversations
 - [ ] Media sharing (images, files)
-- [ ] Push notifications
+- [x] Push notifications
 - [ ] Message reactions
 - [x] Reply functionality
 - [ ] Message search
