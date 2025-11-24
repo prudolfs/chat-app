@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import {
   View,
   Text,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   FlatList,
@@ -10,9 +9,11 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '~/_generated/api'
+import { TopBar } from '@/components/ui/top-bar'
 
 export default function ChatsScreen() {
   const [searchTerm, setSearchTerm] = useState('')
@@ -123,18 +124,18 @@ export default function ChatsScreen() {
   )
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
-      <View className="bg-primary-500 px-4 py-4">
-        <View className="flex-row items-center justify-between">
-          <Text className="text-xl font-bold text-white">Chats</Text>
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+      <TopBar
+        title="Chats"
+        rightAction={
           <TouchableOpacity
-            className="h-10 w-10 items-center justify-center rounded-full bg-primary-600"
+            className="h-7 w-7 items-center justify-center rounded-full bg-primary-600"
             onPress={() => setShowNewChatModal(true)}
           >
-            <Text className="text-xl text-white">+</Text>
+            <Text className="text-base text-white">+</Text>
           </TouchableOpacity>
-        </View>
-      </View>
+        }
+      />
 
       <View className="border-b border-secondary-200 bg-secondary-50 px-4 py-3">
         <TextInput

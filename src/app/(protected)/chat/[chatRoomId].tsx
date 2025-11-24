@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils'
 import { api } from '~/_generated/api'
 import { Id } from '~/_generated/dataModel'
 import type { Doc } from '~/_generated/dataModel'
+import { TopBar } from '@/components/ui/top-bar'
 
 export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: Id<'chatRooms'> }>()
@@ -155,44 +156,24 @@ export default function ChatScreen() {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-1">
-        <View
-          style={{ paddingTop: insets.top }}
-          className="z-10 bg-primary-500"
+        <TopBar
+          showBack
+          title={chatRoom.displayName}
+          subtitle={getOnlineStatus() || undefined}
+          avatar={chatRoom.displayName?.charAt(0) || 'C'}
+          rightAction={
+            chatRoom.type === 'group' ? (
+              <TouchableOpacity
+                className="h-7 w-7 items-center justify-center"
+                onPress={() => {
+                  console.log('Group settings')
+                }}
+              >
+                <Text className="text-base text-white">⋮</Text>
+              </TouchableOpacity>
+            ) : undefined
+          }
         />
-        <View className="z-10 flex-row items-center bg-primary-500 px-4 py-4">
-          <TouchableOpacity
-            className="mr-3 h-10 w-10 items-center justify-center"
-            onPress={() => router.back()}
-          >
-            <Text className="text-xl text-white">←</Text>
-          </TouchableOpacity>
-
-          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary-600">
-            <Text className="font-semibold text-white">
-              {chatRoom.displayName?.charAt(0)?.toUpperCase() || 'C'}
-            </Text>
-          </View>
-
-          <View className="flex-1">
-            <Text className="text-lg font-bold text-white">
-              {chatRoom.displayName}
-            </Text>
-            {getOnlineStatus() && (
-              <Text className="text-sm text-blue-100">{getOnlineStatus()}</Text>
-            )}
-          </View>
-
-          {chatRoom.type === 'group' && (
-            <TouchableOpacity
-              className="h-10 w-10 items-center justify-center"
-              onPress={() => {
-                console.log('Group settings')
-              }}
-            >
-              <Text className="text-xl text-white">⋮</Text>
-            </TouchableOpacity>
-          )}
-        </View>
 
         <Animated.View
           style={{

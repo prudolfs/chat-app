@@ -2,15 +2,16 @@ import React from 'react'
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useSession, signOut } from '@/lib/auth-client'
 import { router } from 'expo-router'
+import { TopBar } from '@/components/ui/top-bar'
 
 export default function ProfileScreen() {
   const { data: session } = useSession()
@@ -36,7 +37,8 @@ export default function ProfileScreen() {
 
   if (!user) {
     return (
-      <SafeAreaView className="flex-1 bg-white">
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <TopBar title="Profile" centerTitle />
         <View className="flex-1 items-center justify-center">
           <Text className="text-secondary-500">Loading profile...</Text>
         </View>
@@ -45,16 +47,12 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         className="flex-1"
       >
-        <View className="bg-primary-500 px-4 py-4">
-          <Text className="text-center text-xl font-bold text-white">
-            Profile
-          </Text>
-        </View>
+        <TopBar title="Profile" centerTitle />
 
         <ScrollView
           className="flex-1"

@@ -5,11 +5,11 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   KeyboardAvoidingView,
   ScrollView,
   Alert,
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useMutation } from 'convex/react'
 import { signUp } from '@/lib/auth-client'
 import { FormField } from '@/components/ui/form-field'
