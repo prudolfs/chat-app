@@ -8,17 +8,24 @@ import {
   Modal,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { useQuery, useMutation } from 'convex/react'
 import { api } from '~/_generated/api'
 import { TopBar } from '@/components/ui/top-bar'
+import { cn } from '@/lib/utils'
+
+type ChatMode = 'direct' | 'group'
 
 export default function ChatsScreen() {
   const [searchTerm, setSearchTerm] = useState('')
   const [showNewChatModal, setShowNewChatModal] = useState(false)
+  const [chatMode, setChatMode] = useState<ChatMode>('direct')
   const [newChatSearch, setNewChatSearch] = useState('')
+  const [groupName, setGroupName] = useState('')
+  const [selectedParticipants, setSelectedParticipants] = useState<string[]>([])
 
   const chatRooms = useQuery(api.chatRooms.getUserChatRooms) ?? []
 
@@ -35,6 +42,7 @@ export default function ChatsScreen() {
     ) ?? []
 
   const createDirectChat = useMutation(api.chatRooms.createOrGetDirectChat)
+  const createGroupChat = useMutation(api.chatRooms.createGroupChat)
 
   const displayData = useMemo(() => {
     return searchTerm.trim() ? searchResults : chatRooms
@@ -45,10 +53,48 @@ export default function ChatsScreen() {
       const chatRoomId = await createDirectChat({ otherUserId })
       setShowNewChatModal(false)
       setNewChatSearch('')
+      setChatMode('direct')
       router.push(`/chat/${chatRoomId}`)
     } catch (error) {
       console.error('Failed to create chat:', error)
     }
+  }
+
+  const handleCreateGroupChat = async () => {
+    if (!groupName.trim() || selectedParticipants.length === 0) {
+      return
+    }
+
+    try {
+      const chatRoomId = await createGroupChat({
+        name: groupName.trim(),
+        participantIds: selectedParticipants,
+      })
+      setShowNewChatModal(false)
+      setNewChatSearch('')
+      setGroupName('')
+      setSelectedParticipants([])
+      setChatMode('direct')
+      router.push(`/chat/${chatRoomId}`)
+    } catch (error) {
+      console.error('Failed to create group chat:', error)
+    }
+  }
+
+  const toggleParticipant = (userId: string) => {
+    setSelectedParticipants((prev) =>
+      prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId],
+    )
+  }
+
+  const resetModal = () => {
+    setShowNewChatModal(false)
+    setNewChatSearch('')
+    setGroupName('')
+    setSelectedParticipants([])
+    setChatMode('direct')
   }
 
   const formatTimestamp = (timestamp: number) => {
@@ -106,22 +152,58 @@ export default function ChatsScreen() {
     )
   }
 
-  const renderUserSearchItem = ({ item }: { item: any }) => (
-    <TouchableOpacity
-      className="flex-row items-center px-4 py-3 active:bg-secondary-100"
-      onPress={() => handleStartNewChat(item.userId)}
-    >
-      <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary-500">
-        <Text className="font-semibold text-white">
-          {item.name.charAt(0).toUpperCase()}
-        </Text>
-      </View>
-      <View className="flex-1">
-        <Text className="font-medium text-secondary-900">{item.name}</Text>
-        <Text className="text-sm text-secondary-600">{item.email}</Text>
-      </View>
-    </TouchableOpacity>
-  )
+  const renderUserSearchItem = ({ item }: { item: any }) => {
+    const isSelected = selectedParticipants.includes(item.userId)
+
+    if (chatMode === 'direct') {
+      return (
+        <TouchableOpacity
+          className="flex-row items-center px-4 py-3 active:bg-secondary-100"
+          onPress={() => handleStartNewChat(item.userId)}
+        >
+          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary-500">
+            <Text className="font-semibold text-white">
+              {item.name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View className="flex-1">
+            <Text className="font-medium text-secondary-900">{item.name}</Text>
+            <Text className="text-sm text-secondary-600">{item.email}</Text>
+          </View>
+        </TouchableOpacity>
+      )
+    }
+
+    return (
+      <TouchableOpacity
+        className={cn(
+          'flex-row items-center px-4 py-3',
+          isSelected ? 'bg-primary-50' : 'active:bg-secondary-100',
+        )}
+        onPress={() => toggleParticipant(item.userId)}
+      >
+        <View
+          className={cn(
+            'mr-3 h-10 w-10 items-center justify-center rounded-full',
+            isSelected ? 'bg-primary-500' : 'bg-secondary-300',
+          )}
+        >
+          <Text className="font-semibold text-white">
+            {item.name.charAt(0).toUpperCase()}
+          </Text>
+        </View>
+        <View className="flex-1">
+          <Text className="font-medium text-secondary-900">{item.name}</Text>
+          <Text className="text-sm text-secondary-600">{item.email}</Text>
+        </View>
+        {isSelected && (
+          <View className="ml-2 h-6 w-6 items-center justify-center rounded-full bg-primary-500">
+            <Text className="text-xs font-bold text-white">✓</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+    )
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -178,25 +260,111 @@ export default function ChatsScreen() {
           >
             <View className="flex-row items-center justify-between border-b border-secondary-200 px-4 py-4">
               <Text className="text-lg font-bold">New Chat</Text>
-              <TouchableOpacity
-                onPress={() => {
-                  setShowNewChatModal(false)
-                  setNewChatSearch('')
-                }}
-              >
+              <TouchableOpacity onPress={resetModal}>
                 <Text className="text-base font-medium text-primary-500">
                   Cancel
                 </Text>
               </TouchableOpacity>
             </View>
 
+            {/* Chat Mode Selector */}
+            <View className="flex-row border-b border-secondary-200 px-4 py-3">
+              <TouchableOpacity
+                className={cn(
+                  'flex-1 rounded-lg px-4 py-2',
+                  chatMode === 'direct' ? 'bg-primary-500' : 'bg-secondary-100',
+                )}
+                onPress={() => {
+                  setChatMode('direct')
+                  setSelectedParticipants([])
+                  setGroupName('')
+                }}
+              >
+                <Text
+                  className={cn(
+                    'text-center font-medium',
+                    chatMode === 'direct' ? 'text-white' : 'text-secondary-700',
+                  )}
+                >
+                  Direct Chat
+                </Text>
+              </TouchableOpacity>
+              <View className="w-3" />
+              <TouchableOpacity
+                className={cn(
+                  'flex-1 rounded-lg px-4 py-2',
+                  chatMode === 'group' ? 'bg-primary-500' : 'bg-secondary-100',
+                )}
+                onPress={() => {
+                  setChatMode('group')
+                  setSelectedParticipants([])
+                }}
+              >
+                <Text
+                  className={cn(
+                    'text-center font-medium',
+                    chatMode === 'group' ? 'text-white' : 'text-secondary-700',
+                  )}
+                >
+                  Group Chat
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* Group Name Input (only for group mode) */}
+            {chatMode === 'group' && (
+              <View className="border-b border-secondary-200 px-4 py-3">
+                <TextInput
+                  className="rounded-lg bg-secondary-100 px-3 py-2 text-base"
+                  placeholder="Group name..."
+                  value={groupName}
+                  onChangeText={setGroupName}
+                />
+              </View>
+            )}
+
+            {/* Selected Participants (only for group mode) */}
+            {chatMode === 'group' && selectedParticipants.length > 0 && (
+              <View className="border-b border-secondary-200 bg-secondary-50 px-4 py-3">
+                <Text className="mb-2 text-sm font-medium text-secondary-700">
+                  Selected ({selectedParticipants.length})
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <View className="flex-row gap-2">
+                    {userSearchResults
+                      .filter((user) =>
+                        selectedParticipants.includes(user.userId),
+                      )
+                      .map((user) => (
+                        <View
+                          key={user.userId}
+                          className="flex-row items-center rounded-full bg-primary-500 px-3 py-1"
+                        >
+                          <Text className="mr-2 text-sm text-white">
+                            {user.name}
+                          </Text>
+                          <TouchableOpacity
+                            onPress={() => toggleParticipant(user.userId)}
+                          >
+                            <Text className="text-sm font-bold text-white">
+                              ×
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+
+            {/* User Search */}
             <View className="border-b border-secondary-200 px-4 py-3">
               <TextInput
                 className="rounded-lg bg-secondary-100 px-3 py-2 text-base"
                 placeholder="Search by name or email..."
                 value={newChatSearch}
                 onChangeText={setNewChatSearch}
-                autoFocus
+                autoFocus={chatMode === 'direct'}
               />
             </View>
 
@@ -216,6 +384,29 @@ export default function ChatsScreen() {
                 </View>
               }
             />
+
+            {/* Create Group Button (only for group mode) */}
+            {chatMode === 'group' && (
+              <View className="border-t border-secondary-200 bg-white px-4 py-4">
+                <TouchableOpacity
+                  className={cn(
+                    'rounded-lg px-4 py-3',
+                    groupName.trim() && selectedParticipants.length > 0
+                      ? 'bg-primary-500'
+                      : 'bg-secondary-300',
+                  )}
+                  onPress={handleCreateGroupChat}
+                  disabled={
+                    !groupName.trim() || selectedParticipants.length === 0
+                  }
+                >
+                  <Text className="text-center text-base font-semibold text-white">
+                    Create Group ({selectedParticipants.length} member
+                    {selectedParticipants.length !== 1 ? 's' : ''})
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </KeyboardAvoidingView>
         </SafeAreaView>
       </Modal>

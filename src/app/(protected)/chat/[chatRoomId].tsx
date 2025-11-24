@@ -18,11 +18,13 @@ import { api } from '~/_generated/api'
 import { Id } from '~/_generated/dataModel'
 import type { Doc } from '~/_generated/dataModel'
 import { TopBar } from '@/components/ui/top-bar'
+import { GroupSettingsModal } from '@/components/group-settings-modal'
 
 export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: Id<'chatRooms'> }>()
   const [newMessage, setNewMessage] = useState('')
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
+  const [showGroupSettings, setShowGroupSettings] = useState(false)
   const flatListRef = useRef<FlatList>(null)
   const keyboardHeightAnim = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
@@ -32,6 +34,10 @@ export default function ChatScreen() {
   const chatRoom = useQuery(api.chatRooms.getChatRoomDetails, {
     chatRoomId: chatRoomId,
   })
+  const participants =
+    useQuery(api.chatRooms.getChatRoomParticipants, {
+      chatRoomId: chatRoomId,
+    }) ?? []
   const messages =
     useQuery(api.messages.getChatMessages, {
       chatRoomId: chatRoomId,
@@ -140,7 +146,8 @@ export default function ChatScreen() {
       return chatRoom.otherUser.isOnline ? 'Online' : 'Offline'
     }
     if (chatRoom?.type === 'group') {
-      return `Group Chat`
+      const participantCount = participants?.length || 0
+      return `${participantCount} member${participantCount !== 1 ? 's' : ''}`
     }
     return null
   }
@@ -165,9 +172,7 @@ export default function ChatScreen() {
             chatRoom.type === 'group' ? (
               <TouchableOpacity
                 className="h-7 w-7 items-center justify-center"
-                onPress={() => {
-                  console.log('Group settings')
-                }}
+                onPress={() => setShowGroupSettings(true)}
               >
                 <Text className="text-base text-white">⋮</Text>
               </TouchableOpacity>
@@ -259,6 +264,14 @@ export default function ChatScreen() {
           </View>
         </Animated.View>
       </View>
+
+      {chatRoom.type === 'group' && (
+        <GroupSettingsModal
+          visible={showGroupSettings}
+          chatRoomId={chatRoomId}
+          onClose={() => setShowGroupSettings(false)}
+        />
+      )}
     </View>
   )
 }

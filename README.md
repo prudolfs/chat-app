@@ -74,7 +74,7 @@ _QR code will be available once deployed to Expo_
 ### Phase 4: Advanced Features 🔮
 
 - [ ] Multiple chat rooms
-- [ ] Group conversations
+- [x] Group conversations
 - [ ] Media sharing (images, files)
 - [ ] Push notifications
 - [ ] Message reactions
