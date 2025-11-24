@@ -19,6 +19,12 @@ import { Id } from '~/_generated/dataModel'
 import type { Doc } from '~/_generated/dataModel'
 import { TopBar } from '@/components/ui/top-bar'
 import { GroupSettingsModal } from '@/components/group-settings-modal'
+import {
+  format,
+  differenceInDays,
+  differenceInMinutes,
+  formatDistanceToNow,
+} from 'date-fns'
 
 export default function ChatScreen() {
   const { chatRoomId } = useLocalSearchParams<{ chatRoomId: Id<'chatRooms'> }>()
@@ -149,22 +155,25 @@ export default function ChatScreen() {
         // Show last seen time
         const lastSeen = chatRoom.otherUser.lastSeen
         if (lastSeen) {
-          const now = Date.now()
-          const diffMs = now - lastSeen
-          const diffMins = Math.floor(diffMs / (1000 * 60))
-          const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
-          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+          try {
+            const now = new Date()
+            const lastSeenDate = new Date(lastSeen)
 
-          if (diffMins < 1) {
-            return 'Last seen just now'
-          } else if (diffMins < 60) {
-            return `Last seen ${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`
-          } else if (diffHours < 24) {
-            return `Last seen ${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
-          } else if (diffDays < 7) {
-            return `Last seen ${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
-          } else {
-            return `Last seen ${new Date(lastSeen).toLocaleDateString()}`
+            if (differenceInMinutes(now, lastSeenDate) < 1) {
+              return 'Last seen just now'
+            }
+
+            if (differenceInDays(now, lastSeenDate) >= 7) {
+              return `Last seen ${format(lastSeenDate, 'MMM d, yyyy')}`
+            }
+
+            const diffText = formatDistanceToNow(lastSeenDate, {
+              addSuffix: true,
+            })
+            return `Last seen ${diffText}`
+          } catch (e) {
+            // Fallback in case of invalid lastSeen
+            return 'Last seen some time ago'
           }
         }
         return 'Offline'

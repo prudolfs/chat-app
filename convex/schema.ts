@@ -42,6 +42,7 @@ export default defineSchema({
     status: v.optional(v.string()),
     isOnline: v.boolean(),
     lastSeen: v.number(),
+    pushToken: v.optional(v.string()), // Expo push notification token
   })
     .index('by_user_id', ['userId'])
     .index('by_name', ['name'])

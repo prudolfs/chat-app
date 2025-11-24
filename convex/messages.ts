@@ -1,6 +1,7 @@
 import { mutation, query } from './_generated/server'
 import { v } from 'convex/values'
 import { authComponent } from './auth'
+import { api } from './_generated/api'
 
 export const getChatMessages = query({
   args: { chatRoomId: v.id('chatRooms') },
@@ -65,6 +66,16 @@ export const sendMessage = mutation({
       lastMessageText: text.substring(0, 100),
       updatedAt: Date.now(),
     })
+
+    // Schedule push notification (don't await - fire and forget)
+    ctx.scheduler
+      .runAfter(0, api.notifications.sendPushNotifications, {
+        chatRoomId,
+        senderId: user._id,
+        messageText: text,
+        senderName: userProfile?.name || user.name || 'Unknown User',
+      })
+      .catch(console.error)
 
     return messageId
   },

@@ -129,3 +129,44 @@ export const updateUserHeartbeat = mutation({
     }
   },
 })
+
+export const registerPushToken = mutation({
+  args: {
+    pushToken: v.string(),
+  },
+  handler: async (ctx, { pushToken }) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) {
+      throw new Error('Not authenticated')
+    }
+
+    if (!pushToken || pushToken.trim().length === 0) {
+      throw new Error('Push token cannot be empty')
+    }
+
+    const existing = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+      .first()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        pushToken,
+      })
+      return { success: true, updated: true }
+    } else {
+      // Create profile if it doesn't exist
+      await ctx.db.insert('userProfiles', {
+        userId: user._id,
+        name: user.name || 'Unknown User',
+        email: user.email || '',
+        image: user.image ?? undefined,
+        status: "Hey there! I'm using ChatApp.",
+        isOnline: true,
+        lastSeen: Date.now(),
+        pushToken,
+      })
+      return { success: true, created: true }
+    }
+  },
+})
