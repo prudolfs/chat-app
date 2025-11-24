@@ -47,4 +47,14 @@ export default defineSchema({
     .index('by_user_id', ['userId'])
     .index('by_name', ['name'])
     .index('by_email', ['email']),
+
+  // Message reactions
+  messageReactions: defineTable({
+    messageId: v.id('messages'),
+    userId: v.string(), // Better Auth user ID
+    emoji: v.string(), // Emoji character
+    timestamp: v.number(),
+  })
+    .index('by_message', ['messageId'])
+    .index('by_user_and_message', ['userId', 'messageId']),
 })

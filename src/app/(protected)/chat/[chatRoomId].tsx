@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react'
+import React, { useState, useRef, useEffect, useMemo } from 'react'
 import {
   View,
   Text,
@@ -19,6 +19,7 @@ import { Id } from '~/_generated/dataModel'
 import type { Doc } from '~/_generated/dataModel'
 import { TopBar } from '@/components/ui/top-bar'
 import { GroupSettingsModal } from '@/components/group-settings-modal'
+import { EmojiPicker } from '@/components/emoji-picker'
 import {
   format,
   differenceInDays,
@@ -31,6 +32,9 @@ export default function ChatScreen() {
   const [newMessage, setNewMessage] = useState('')
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false)
   const [showGroupSettings, setShowGroupSettings] = useState(false)
+  const [selectedMessageId, setSelectedMessageId] =
+    useState<Id<'messages'> | null>(null)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const flatListRef = useRef<FlatList>(null)
   const keyboardHeightAnim = useRef(new Animated.Value(0)).current
   const insets = useSafeAreaInsets()
@@ -49,7 +53,27 @@ export default function ChatScreen() {
       chatRoomId: chatRoomId,
     }) ?? []
   const sendMessage = useMutation(api.messages.sendMessage)
+  const addReaction = useMutation(api.messages.addReaction)
   const reversedMessages = [...messages].reverse()
+
+  // Get reactions for all messages
+  const messageIds = useMemo(() => messages.map((m) => m._id), [messages])
+  const reactionsData =
+    useQuery(api.messages.getMessageReactions, {
+      messageIds: messageIds,
+    }) ?? []
+
+  // Create a map of messageId -> reactions for quick lookup
+  const reactionsMap = useMemo(() => {
+    const map = new Map<
+      Id<'messages'>,
+      Array<{ emoji: string; count: number; userReacted: boolean }>
+    >()
+    for (const data of reactionsData) {
+      map.set(data.messageId, data.reactions)
+    }
+    return map
+  }, [reactionsData])
 
   useEffect(() => {
     const keyboardWillShowListener = Keyboard.addListener(
@@ -99,12 +123,48 @@ export default function ChatScreen() {
     }
   }
 
+  const handleLongPressMessage = (messageId: Id<'messages'>) => {
+    setSelectedMessageId(messageId)
+    setShowEmojiPicker(true)
+    Keyboard.dismiss()
+  }
+
+  const handleEmojiSelect = async (emoji: string) => {
+    if (!selectedMessageId) return
+
+    try {
+      await addReaction({
+        messageId: selectedMessageId,
+        emoji,
+      })
+      setShowEmojiPicker(false)
+      setSelectedMessageId(null)
+    } catch (error) {
+      console.error('Failed to add reaction:', error)
+    }
+  }
+
+  const handleReactionPress = async (
+    messageId: Id<'messages'>,
+    emoji: string,
+  ) => {
+    try {
+      await addReaction({
+        messageId,
+        emoji,
+      })
+    } catch (error) {
+      console.error('Failed to toggle reaction:', error)
+    }
+  }
+
   const renderMessage = ({ item }: { item: Doc<'messages'> }) => {
     const isMe = item.userId === user?.id
     const timeString = new Date(item.timestamp).toLocaleTimeString([], {
       hour: '2-digit',
       minute: '2-digit',
     })
+    const reactions = reactionsMap.get(item._id) || []
 
     return (
       <View className={cn('mb-4', isMe ? 'items-end' : 'items-start')}>
@@ -113,32 +173,73 @@ export default function ChatScreen() {
             {item.userName || 'Unknown User'}
           </Text>
         )}
-        <View
-          className={cn(
-            'max-w-[80%] rounded-2xl px-4 py-3',
-            isMe
-              ? 'rounded-br-md bg-primary-500'
-              : 'rounded-bl-md bg-secondary-100',
-          )}
+        <TouchableOpacity
+          onLongPress={() => handleLongPressMessage(item._id)}
+          activeOpacity={0.9}
         >
-          <Text
+          <View
             className={cn(
-              'text-base',
-              isMe ? 'text-white' : 'text-secondary-900',
+              'max-w-[80%] rounded-2xl px-4 py-3',
+              isMe
+                ? 'rounded-br-md bg-primary-500'
+                : 'rounded-bl-md bg-secondary-100',
             )}
           >
-            {item.text}
-          </Text>
-          <Text
+            <Text
+              className={cn(
+                'text-base',
+                isMe ? 'text-white' : 'text-secondary-900',
+              )}
+            >
+              {item.text}
+            </Text>
+            <Text
+              className={cn(
+                'mt-1 text-xs',
+                isMe ? 'text-blue-100' : 'text-secondary-500',
+              )}
+            >
+              {timeString}
+              {item.edited && ' (edited)'}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        {reactions.length > 0 && (
+          <View
             className={cn(
-              'mt-1 text-xs',
-              isMe ? 'text-blue-100' : 'text-secondary-500',
+              'mt-1 flex-row flex-wrap gap-1',
+              isMe ? 'mr-0 justify-end' : 'ml-0 justify-start',
             )}
+            style={{ maxWidth: '80%' }}
           >
-            {timeString}
-            {item.edited && ' (edited)'}
-          </Text>
-        </View>
+            {reactions.map((reaction, index) => (
+              <TouchableOpacity
+                key={index}
+                onPress={() => handleReactionPress(item._id, reaction.emoji)}
+                className={cn(
+                  'flex-row items-center gap-1 rounded-full border px-2 py-1',
+                  reaction.userReacted
+                    ? 'border-primary-500 bg-primary-50'
+                    : 'border-secondary-300 bg-white',
+                )}
+              >
+                <Text className="text-sm">{reaction.emoji}</Text>
+                {reaction.count > 1 && (
+                  <Text
+                    className={cn(
+                      'text-xs',
+                      reaction.userReacted
+                        ? 'text-primary-700'
+                        : 'text-secondary-600',
+                    )}
+                  >
+                    {reaction.count}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+        )}
       </View>
     )
   }
@@ -197,34 +298,41 @@ export default function ChatScreen() {
   return (
     <View className="flex-1 bg-white">
       <View className="flex-1">
-        <TopBar
-          showBack
-          title={chatRoom.displayName}
-          subtitle={getOnlineStatus() || undefined}
-          avatar={chatRoom.displayName?.charAt(0) || 'C'}
-          isOnline={
-            chatRoom.type === 'direct' &&
-            'otherUser' in chatRoom &&
-            chatRoom.otherUser
-              ? chatRoom.otherUser.isOnline
-              : undefined
-          }
-          rightAction={
-            chatRoom.type === 'group' ? (
-              <TouchableOpacity
-                className="h-7 w-7 items-center justify-center"
-                onPress={() => setShowGroupSettings(true)}
-              >
-                <Text className="text-base text-white">⋮</Text>
-              </TouchableOpacity>
-            ) : undefined
-          }
-        />
+        <View
+          style={{
+            zIndex: 10,
+            elevation: 10,
+          }}
+        >
+          <TopBar
+            showBack
+            title={chatRoom.displayName}
+            subtitle={getOnlineStatus() || undefined}
+            avatar={chatRoom.displayName?.charAt(0) || 'C'}
+            isOnline={
+              chatRoom.type === 'direct' &&
+              'otherUser' in chatRoom &&
+              chatRoom.otherUser
+                ? chatRoom.otherUser.isOnline
+                : undefined
+            }
+            rightAction={
+              chatRoom.type === 'group' ? (
+                <TouchableOpacity
+                  className="h-7 w-7 items-center justify-center"
+                  onPress={() => setShowGroupSettings(true)}
+                >
+                  <Text className="text-base text-white">⋮</Text>
+                </TouchableOpacity>
+              ) : undefined
+            }
+          />
+        </View>
 
         <Animated.View
           style={{
             flex: 1,
-            zIndex: 1,
+            zIndex: 0,
             transform: [
               {
                 translateY: keyboardHeightAnim.interpolate({
@@ -268,40 +376,50 @@ export default function ChatScreen() {
             />
           </View>
 
-          <View
-            className="flex-row items-end border-t border-secondary-200 bg-secondary-50 px-4 py-4"
-            style={{
-              paddingBottom: isKeyboardVisible
-                ? 16
-                : Math.max(16, insets.bottom),
-            }}
-          >
-            <TextInput
-              className="mr-3 max-h-20 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
-              placeholder={`Message ${chatRoom.displayName}...`}
-              value={newMessage}
-              onChangeText={setNewMessage}
-              multiline
-              maxLength={1000}
-              textAlignVertical="center"
-              onSubmitEditing={() => {
-                if (!newMessage.includes('\n')) {
-                  handleSendMessage()
-                }
+          <View>
+            <EmojiPicker
+              visible={showEmojiPicker}
+              onEmojiSelect={handleEmojiSelect}
+              onClose={() => {
+                setShowEmojiPicker(false)
+                setSelectedMessageId(null)
               }}
-              blurOnSubmit={false}
             />
-
-            <TouchableOpacity
-              className={cn(
-                'h-12 w-12 items-center justify-center rounded-full',
-                newMessage.trim() ? 'bg-primary-500' : 'bg-secondary-300',
-              )}
-              onPress={handleSendMessage}
-              disabled={!newMessage.trim()}
+            <View
+              className="flex-row items-end border-t border-secondary-200 bg-secondary-50 px-4 py-4"
+              style={{
+                paddingBottom: isKeyboardVisible
+                  ? 16
+                  : Math.max(16, insets.bottom),
+              }}
             >
-              <Text className="text-lg text-white">→</Text>
-            </TouchableOpacity>
+              <TextInput
+                className="mr-3 max-h-20 flex-1 rounded-full border border-secondary-300 bg-white px-4 py-3"
+                placeholder={`Message ${chatRoom.displayName}...`}
+                value={newMessage}
+                onChangeText={setNewMessage}
+                multiline
+                maxLength={1000}
+                textAlignVertical="center"
+                onSubmitEditing={() => {
+                  if (!newMessage.includes('\n')) {
+                    handleSendMessage()
+                  }
+                }}
+                blurOnSubmit={false}
+              />
+
+              <TouchableOpacity
+                className={cn(
+                  'h-12 w-12 items-center justify-center rounded-full',
+                  newMessage.trim() ? 'bg-primary-500' : 'bg-secondary-300',
+                )}
+                onPress={handleSendMessage}
+                disabled={!newMessage.trim()}
+              >
+                <Text className="text-lg text-white">→</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </Animated.View>
       </View>

@@ -162,3 +162,122 @@ export const deleteMessage = mutation({
     return messageId
   },
 })
+
+export const getMessageReactions = query({
+  args: { messageIds: v.array(v.id('messages')) },
+  handler: async (ctx, { messageIds }) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) return []
+
+    const reactions = await Promise.all(
+      messageIds.map(async (messageId) => {
+        const messageReactions = await ctx.db
+          .query('messageReactions')
+          .withIndex('by_message', (q) => q.eq('messageId', messageId))
+          .collect()
+
+        // Group reactions by emoji
+        const grouped: Record<
+          string,
+          { emoji: string; count: number; userReacted: boolean }
+        > = {}
+
+        for (const reaction of messageReactions) {
+          if (!grouped[reaction.emoji]) {
+            grouped[reaction.emoji] = {
+              emoji: reaction.emoji,
+              count: 0,
+              userReacted: false,
+            }
+          }
+          grouped[reaction.emoji].count++
+          if (reaction.userId === user._id) {
+            grouped[reaction.emoji].userReacted = true
+          }
+        }
+
+        return {
+          messageId,
+          reactions: Object.values(grouped),
+        }
+      }),
+    )
+
+    return reactions
+  },
+})
+
+export const addReaction = mutation({
+  args: {
+    messageId: v.id('messages'),
+    emoji: v.string(),
+  },
+  handler: async (ctx, { messageId, emoji }) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    // Check if user already reacted with this emoji
+    const existingReaction = await ctx.db
+      .query('messageReactions')
+      .withIndex('by_user_and_message', (q) =>
+        q.eq('userId', user._id).eq('messageId', messageId),
+      )
+      .filter((q) => q.eq(q.field('emoji'), emoji))
+      .first()
+
+    if (existingReaction) {
+      // Remove existing reaction (toggle off)
+      await ctx.db.delete(existingReaction._id)
+      return { added: false }
+    }
+
+    // Check if message exists and user has access
+    const message = await ctx.db.get(messageId)
+    if (!message) throw new Error('Message not found')
+
+    const userChatRoomLink = await ctx.db
+      .query('userChatRooms')
+      .withIndex('by_user', (q) => q.eq('userId', user._id))
+      .filter((q) => q.eq(q.field('chatRoomId'), message.chatRoomId))
+      .first()
+
+    if (!userChatRoomLink) {
+      throw new Error('Not authorized to react to this message')
+    }
+
+    // Add new reaction
+    await ctx.db.insert('messageReactions', {
+      messageId,
+      userId: user._id,
+      emoji,
+      timestamp: Date.now(),
+    })
+
+    return { added: true }
+  },
+})
+
+export const removeReaction = mutation({
+  args: {
+    messageId: v.id('messages'),
+    emoji: v.string(),
+  },
+  handler: async (ctx, { messageId, emoji }) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const reaction = await ctx.db
+      .query('messageReactions')
+      .withIndex('by_user_and_message', (q) =>
+        q.eq('userId', user._id).eq('messageId', messageId),
+      )
+      .filter((q) => q.eq(q.field('emoji'), emoji))
+      .first()
+
+    if (reaction) {
+      await ctx.db.delete(reaction._id)
+    }
+
+    return { removed: true }
+  },
+})
