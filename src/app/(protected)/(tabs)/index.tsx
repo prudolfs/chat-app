@@ -117,6 +117,8 @@ export default function ChatsScreen() {
 
   const renderChatItem = ({ item }: { item: any }) => {
     let displayName = 'Unknown Chat'
+    const isDirectChat = item.type === 'direct'
+    const isOnline = isDirectChat && item.otherUser?.isOnline
 
     if (item.type === 'direct') {
       displayName = item.displayName || 'Direct Chat'
@@ -129,17 +131,39 @@ export default function ChatsScreen() {
         className="flex-row items-center border-b border-secondary-100 px-4 py-4 active:bg-secondary-50"
         onPress={() => router.push(`/chat/${item._id}`)}
       >
-        <View className="mr-3 h-12 w-12 items-center justify-center rounded-full bg-primary-500">
-          <Text className="text-lg font-semibold text-white">
-            {displayName.charAt(0).toUpperCase()}
-          </Text>
+        <View className="relative mr-3">
+          <View className="h-12 w-12 items-center justify-center rounded-full bg-primary-500">
+            <Text className="text-lg font-semibold text-white">
+              {displayName.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          {isDirectChat && (
+            <View
+              className={cn(
+                'absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full border-2 border-white',
+                isOnline ? 'bg-green-500' : 'bg-secondary-400',
+              )}
+            />
+          )}
         </View>
 
         <View className="flex-1">
           <View className="mb-1 flex-row items-center justify-between">
-            <Text className="text-base font-semibold text-secondary-900">
-              {displayName}
-            </Text>
+            <View className="flex-1 flex-row items-center">
+              <Text className="text-base font-semibold text-secondary-900">
+                {displayName}
+              </Text>
+              {isDirectChat && (
+                <Text
+                  className={cn(
+                    'ml-2 text-xs',
+                    isOnline ? 'text-green-600' : 'text-secondary-500',
+                  )}
+                >
+                  {isOnline ? 'Online' : 'Offline'}
+                </Text>
+              )}
+            </View>
             <Text className="text-sm text-secondary-500">
               {formatTimestamp(item.lastMessageTime)}
             </Text>
@@ -154,6 +178,7 @@ export default function ChatsScreen() {
 
   const renderUserSearchItem = ({ item }: { item: any }) => {
     const isSelected = selectedParticipants.includes(item.userId)
+    const isOnline = item.isOnline
 
     if (chatMode === 'direct') {
       return (
@@ -161,13 +186,33 @@ export default function ChatsScreen() {
           className="flex-row items-center px-4 py-3 active:bg-secondary-100"
           onPress={() => handleStartNewChat(item.userId)}
         >
-          <View className="mr-3 h-10 w-10 items-center justify-center rounded-full bg-primary-500">
-            <Text className="font-semibold text-white">
-              {item.name.charAt(0).toUpperCase()}
-            </Text>
+          <View className="relative mr-3">
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-primary-500">
+              <Text className="font-semibold text-white">
+                {item.name.charAt(0).toUpperCase()}
+              </Text>
+            </View>
+            <View
+              className={cn(
+                'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
+                isOnline ? 'bg-green-500' : 'bg-secondary-400',
+              )}
+            />
           </View>
           <View className="flex-1">
-            <Text className="font-medium text-secondary-900">{item.name}</Text>
+            <View className="flex-row items-center">
+              <Text className="font-medium text-secondary-900">
+                {item.name}
+              </Text>
+              <Text
+                className={cn(
+                  'ml-2 text-xs',
+                  isOnline ? 'text-green-600' : 'text-secondary-500',
+                )}
+              >
+                {isOnline ? 'Online' : 'Offline'}
+              </Text>
+            </View>
             <Text className="text-sm text-secondary-600">{item.email}</Text>
           </View>
         </TouchableOpacity>
@@ -182,18 +227,36 @@ export default function ChatsScreen() {
         )}
         onPress={() => toggleParticipant(item.userId)}
       >
-        <View
-          className={cn(
-            'mr-3 h-10 w-10 items-center justify-center rounded-full',
-            isSelected ? 'bg-primary-500' : 'bg-secondary-300',
-          )}
-        >
-          <Text className="font-semibold text-white">
-            {item.name.charAt(0).toUpperCase()}
-          </Text>
+        <View className="relative mr-3">
+          <View
+            className={cn(
+              'h-10 w-10 items-center justify-center rounded-full',
+              isSelected ? 'bg-primary-500' : 'bg-secondary-300',
+            )}
+          >
+            <Text className="font-semibold text-white">
+              {item.name.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View
+            className={cn(
+              'absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white',
+              isOnline ? 'bg-green-500' : 'bg-secondary-400',
+            )}
+          />
         </View>
         <View className="flex-1">
-          <Text className="font-medium text-secondary-900">{item.name}</Text>
+          <View className="flex-row items-center">
+            <Text className="font-medium text-secondary-900">{item.name}</Text>
+            <Text
+              className={cn(
+                'ml-2 text-xs',
+                isOnline ? 'text-green-600' : 'text-secondary-500',
+              )}
+            >
+              {isOnline ? 'Online' : 'Offline'}
+            </Text>
+          </View>
           <Text className="text-sm text-secondary-600">{item.email}</Text>
         </View>
         {isSelected && (

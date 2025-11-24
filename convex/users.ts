@@ -55,3 +55,77 @@ export const createOrUpdateUserProfile = mutation({
     }
   },
 })
+
+export const setUserOnline = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const existing = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+      .first()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        isOnline: true,
+        lastSeen: Date.now(),
+      })
+    } else {
+      // Create profile if it doesn't exist
+      await ctx.db.insert('userProfiles', {
+        userId: user._id,
+        name: user.name || 'Unknown User',
+        email: user.email || '',
+        image: user.image ?? undefined,
+        status: "Hey there! I'm using ChatApp.",
+        isOnline: true,
+        lastSeen: Date.now(),
+      })
+    }
+  },
+})
+
+export const setUserOffline = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const existing = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+      .first()
+
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        isOnline: false,
+        lastSeen: Date.now(),
+      })
+    }
+  },
+})
+
+export const updateUserHeartbeat = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const user = await authComponent.getAuthUser(ctx)
+    if (!user) throw new Error('Not authenticated')
+
+    const existing = await ctx.db
+      .query('userProfiles')
+      .withIndex('by_user_id', (q) => q.eq('userId', user._id))
+      .first()
+
+    if (existing) {
+      // Only update if user is already marked as online
+      // This prevents marking offline users as online
+      if (existing.isOnline) {
+        await ctx.db.patch(existing._id, {
+          lastSeen: Date.now(),
+        })
+      }
+    }
+  },
+})

@@ -18,7 +18,7 @@ import { Id } from '~/_generated/dataModel'
 import { useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
 
-interface GroupSettingsModalProps {
+type GroupSettingsModalProps = {
   visible: boolean
   chatRoomId: Id<'chatRooms'>
   onClose: () => void

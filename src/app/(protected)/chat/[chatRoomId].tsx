@@ -10,7 +10,7 @@ import {
   Animated,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { router, useLocalSearchParams } from 'expo-router'
+import { useLocalSearchParams } from 'expo-router'
 import { useQuery, useMutation } from 'convex/react'
 import { useSession } from '@/lib/auth-client'
 import { cn } from '@/lib/utils'
@@ -143,7 +143,32 @@ export default function ChatScreen() {
       'otherUser' in chatRoom &&
       chatRoom.otherUser
     ) {
-      return chatRoom.otherUser.isOnline ? 'Online' : 'Offline'
+      if (chatRoom.otherUser.isOnline) {
+        return 'Online'
+      } else {
+        // Show last seen time
+        const lastSeen = chatRoom.otherUser.lastSeen
+        if (lastSeen) {
+          const now = Date.now()
+          const diffMs = now - lastSeen
+          const diffMins = Math.floor(diffMs / (1000 * 60))
+          const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+          const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+          if (diffMins < 1) {
+            return 'Last seen just now'
+          } else if (diffMins < 60) {
+            return `Last seen ${diffMins} minute${diffMins !== 1 ? 's' : ''} ago`
+          } else if (diffHours < 24) {
+            return `Last seen ${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`
+          } else if (diffDays < 7) {
+            return `Last seen ${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
+          } else {
+            return `Last seen ${new Date(lastSeen).toLocaleDateString()}`
+          }
+        }
+        return 'Offline'
+      }
     }
     if (chatRoom?.type === 'group') {
       const participantCount = participants?.length || 0
@@ -168,6 +193,13 @@ export default function ChatScreen() {
           title={chatRoom.displayName}
           subtitle={getOnlineStatus() || undefined}
           avatar={chatRoom.displayName?.charAt(0) || 'C'}
+          isOnline={
+            chatRoom.type === 'direct' &&
+            'otherUser' in chatRoom &&
+            chatRoom.otherUser
+              ? chatRoom.otherUser.isOnline
+              : undefined
+          }
           rightAction={
             chatRoom.type === 'group' ? (
               <TouchableOpacity

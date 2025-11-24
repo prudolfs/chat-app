@@ -15,7 +15,40 @@ export const getUserChatRooms = query({
 
     const chatRooms = await Promise.all(
       userChatRoomLinks.map(async (link) => {
-        return await ctx.db.get(link.chatRoomId)
+        const chatRoom = await ctx.db.get(link.chatRoomId)
+        if (!chatRoom) return null
+
+        // For direct chats, include the other user's profile
+        if (chatRoom.type === 'direct') {
+          const allParticipants = await ctx.db
+            .query('userChatRooms')
+            .filter((q) => q.eq(q.field('chatRoomId'), link.chatRoomId))
+            .collect()
+
+          const otherParticipant = allParticipants.find(
+            (p) => p.userId !== user._id,
+          )
+
+          if (otherParticipant) {
+            const otherUserProfile = await ctx.db
+              .query('userProfiles')
+              .withIndex('by_user_id', (q) =>
+                q.eq('userId', otherParticipant.userId),
+              )
+              .first()
+
+            return {
+              ...chatRoom,
+              otherUser: otherUserProfile,
+              displayName: otherUserProfile?.name || 'Unknown User',
+            }
+          }
+        }
+
+        return {
+          ...chatRoom,
+          displayName: chatRoom.name || 'Group Chat',
+        }
       }),
     )
 

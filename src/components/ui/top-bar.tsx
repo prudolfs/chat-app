@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { router } from 'expo-router'
 import { cn } from '@/lib/utils'
 
-interface TopBarProps {
+type TopBarProps = {
   title: string
   subtitle?: string
   showBack?: boolean
@@ -13,6 +13,7 @@ interface TopBarProps {
   rightAction?: React.ReactNode
   centerTitle?: boolean
   avatar?: string
+  isOnline?: boolean
 }
 
 export function TopBar({
@@ -24,6 +25,7 @@ export function TopBar({
   rightAction,
   centerTitle = false,
   avatar,
+  isOnline,
 }: TopBarProps) {
   const insets = useSafeAreaInsets()
 
@@ -52,10 +54,20 @@ export function TopBar({
 
         {/* Avatar (for chat screen) */}
         {avatar && (
-          <View className="mr-2 h-7 w-7 items-center justify-center rounded-full bg-primary-600">
-            <Text className="text-xs font-semibold text-white">
-              {avatar.toUpperCase()}
-            </Text>
+          <View className="relative mr-2">
+            <View className="h-7 w-7 items-center justify-center rounded-full bg-primary-600">
+              <Text className="text-xs font-semibold text-white">
+                {avatar.toUpperCase()}
+              </Text>
+            </View>
+            {isOnline !== undefined && (
+              <View
+                className={cn(
+                  'absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full border border-primary-500',
+                  isOnline ? 'bg-green-500' : 'bg-secondary-400',
+                )}
+              />
+            )}
           </View>
         )}
 
